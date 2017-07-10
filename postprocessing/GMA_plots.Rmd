@@ -1,0 +1,83 @@
+---
+title: "TRs_plots"
+author: "Z"
+date: "July 6, 2017"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r plots, echo=FALSE}
+
+# read the calculated TRs values made by marzie's TRs code
+TRs <- read.csv(file ="calculated.gma", sep = "\t", dec = ".", header = F, row.names = 4)
+colnames(TRs) <- c("chrom", "start", "end", "size", "missing", "extra", "gma")
+TRs <- cbind(TRs, miss_normal = TRs$missing/(100-TRs$size+1), extr_normal = TRs$extra/(100-TRs$size+1), coverage = (100-TRs$size+1), indis = rep(FALSE, nrow(TRs)), multi = rep(FALSE, nrow(TRs)))
+
+# the indis and multi file given by yozen
+indis <- read.csv(file = "2015-01_indist_by_detected.txt", sep = "\t", dec = ".", header = TRUE)
+multi <- read.csv(file = "2015-01_multi_by_indist.txt", sep = "\t", dec = ".", header = TRUE)
+
+TRs[which(rownames(TRs) %in% indis$Repeatid), "indis"] = TRUE
+TRs[which(rownames(TRs) %in% multi$Repeatid), "multi"] = TRUE
+
+N = nrow(TRs)
+
+head(TRs)
+
+#colors = rep(rgb(0,0,0,0.1), N)
+#colors[which(TRs$indis)] = rgb(0,0,1,0.1)
+#colors[which(TRs$multi)] = rgb(1,0,0,0.1)
+#colors[which(TRs$indis & TRs$multi)] = rgb(1,0,1,0.1)
+
+none_count = c(lt1=sum(!TRs$indis & !TRs$multi & TRs$gma < 1), eq1=sum(!TRs$indis & !TRs$multi & TRs$gma == 1), total=sum(!TRs$indis & !TRs$multi)) 
+indis_count = c(lt1=sum(TRs$indis & TRs$gma < 1), eq1=sum(TRs$indis & TRs$gma == 1), total=sum(TRs$indis))
+multi_count = c(lt1=sum(TRs$multi & TRs$gma < 1), eq1=sum(TRs$multi & TRs$gma == 1), total=sum(TRs$multi))
+both_count = c(lt1=sum(TRs$indis & TRs$multi & TRs$gma < 1), eq1=sum(TRs$indis & TRs$multi & TRs$gma == 1), total=sum(TRs$indis & TRs$multi))
+
+none_percentage = c(lt1=sum(!TRs$indis & !TRs$multi & TRs$gma < 1)/none_count[3], eq1=sum(!TRs$indis & !TRs$multi & TRs$gma == 1)/none_count[3], total=sum(!TRs$indis & !TRs$multi)/N) 
+indis_percentage = c(lt1=sum(TRs$indis & TRs$gma < 1)/indis_count[3], eq1=sum(TRs$indis & TRs$gma == 1)/indis_count[3], total=sum(!TRs$indis & !TRs$multi)/N)
+multi_percentage = c(lt1=sum(TRs$multi & TRs$gma < 1)/multi_count[3], eq1=sum(TRs$multi & TRs$gma == 1)/multi_count[3], total=sum(TRs$multi)/N)
+both_percentage = c(lt1=sum(TRs$indis & TRs$multi & TRs$gma < 1)/both_count[3], eq1=sum(TRs$indis & TRs$multi & TRs$gma == 1)/both_count[3], total=sum(TRs$indis & TRs$multi)/N)
+
+rbind(none_count, indis_count, multi_count, both_count)
+rbind(none_percentage, indis_percentage, multi_percentage, both_percentage)
+
+############################ PLOTS ######################3
+
+plot(TRs$miss_normal, TRs$extr_normal, xlab = "normalized missing", ylab = "normalized extra", main="missing over extra", pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+abline(0, 1, col="black")
+
+boxplot(cbind(distinct = TRs$gma[which(!TRs$indis & !TRs$multi & TRs$gma < 1)],  indistinct = TRs$gma[which(TRs$indis & TRs$gma < 1)], multi = TRs$gma[which(TRs$multi & TRs$gma < 1)], indistinct_and_multi = TRs$gma[which(TRs$indis & TRs$multi & TRs$gma < 1)]), col=c(rgb(0,0,0,1),rgb(0,0,1,1),rgb(1,0,0,1),rgb(1,0,1,1)))
+
+plot(TRs$size, TRs$gma, xlab = "array length", ylab = "TRs score", main="TRs over array size", pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+
+
+plot(TRs$size, TRs$extr_normal, xlab = "array length", ylab = "extra", main="extra over array size", pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+
+
+plot(TRs$size, TRs$miss_normal, xlab = "array length", ylab = "missing", main="extra over array size", pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+
+plot(TRs$missing, TRs$gma, pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+
+
+plot(TRs$extra, TRs$gma, pch=(15+TRs$indis+2*TRs$multi), col=rgb(TRs$indis,TRs$multi,!TRs$indis,0.1+0.9*TRs$multi))
+legend("topright", pch=c(15,16,17,18), col=c(rgb(0,0,1,1),rgb(1,0,0,1),rgb(0,1,0,1),rgb(1,1,0,1)), legend = c("none", "indis", "multi", "both"))
+
+
+
+
+write.table(TRs[which(!TRs$indis & TRs$gma < 1),], file="suspects.txt", sep="\t", dec = ".", quote = FALSE)
+
+
+```
+
