@@ -17,17 +17,19 @@ mv tmp $TR_LIST_FILE
 
 echo "reading " $TR_LIST_FILE 
 rm test
-cat $TR_LIST_FILE | while read line
+line=0
+cat $TR_LIST_FILE | while read id chrom start end size missing extra missing_normal extra_normal gma_score indis multi
 do
-   echo $line | awk -v R=$REFERENCE -v F=$FLANK_LENGTH -v O=$OFFSET '{print "samtools faidx " R " "  $2 ":" $3-F-1+O "-" $3-1+O}' > tmp.sh
-   LEFT=$(sh tmp.sh | awk '(NR>1) {print}' | tr -d "\n")
-   echo $line | awk -v R=$REFERENCE -v F=$FLANK_LENGTH -v O=$OFFSET '{print "samtools faidx " R " "  $2 ":" $4+1-O "-" $4+F+1-O}' > tmp.sh
-   RIGHT=$(sh tmp.sh | awk '(NR>1) {print}' | tr -d "\n")
-   echo $line | awk -v R=$REFERENCE -v O=$OFFSET '{print "samtools faidx " R " "  $2 ":" $3+O "-" $4-O}' > tmp.sh
-   ARRAY=$(sh tmp.sh | awk '(NR>1){print}' | tr -d "\n")
-   echo $line$'\t'$LEFT $RIGHT $ARRAY >> test
+   if [ "$line" -eq "0" ]; then
+      line=1
+   else
+      LEFT=$(samtools faidx $REFERENCE $chrom:$((start - FLANK_LENGTH + OFFSET))-$((start + OFFSET)) | awk '(NR>1) {print}' | tr -d "\n")
+      RIGHT=$(samtools faidx $REFERENCE $chrom:$((end - OFFSET))-$((end + FLANK_LENGTH - OFFSET)) | awk '(NR>1) {print}' | tr -d "\n")
+      ARRAY=$(samtools faidx $REFERENCE $chrom:$((start + OFFSET))-$((end - OFFSET)) | awk '(NR>1) {print}' | tr -d "\n")
+      echo $id$'\t'$chrom:$start-$end$'\t'$size$'\t'$gma_score$'\t'$indis$'\t'$multi$'\t'$LEFT $RIGHT $ARRAY >> test
+   fi
 done
 rm tmp.sh
 
-awk '{print $1 "\t" $2 ":" $3 "-" $4 "\t" ($12 ? "I" : "S") "\t" ($13 ? "-" : "M") "\t" ($4-$3+1) "\t"  $14 " " $15 " " $16}' test | sort -f -k 5,5 -k 6,6 | uniq -f 5 -i -D > unmarked.indis.BADHOMBRE.txt
+awk '{printf $1 "\t" $2 "\t" $3 "\t" substr(100*$4,1,index(100*$4,".")-1) "." substr(100*$4,index(100*$4,".")+1,3) "%\t" ($5 ? "I" : "S") "\t" ($6 ? "-" : "M") "\t" ($4-$3+1) "\t"  $7 " " $8 " " $9}' test | sort -f -k 5,5 -k 6,6 | uniq -f 5 -i -D > unmarked.indis.BADHOMBRE.txt
 rm test
