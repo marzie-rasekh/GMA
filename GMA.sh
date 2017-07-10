@@ -24,26 +24,34 @@ PROJECT=vntrseek
 
 
 ## initialize
+
+if [ -d "$FASTA_DIR" ]; then
+        rm $FASTA_DIR/*
+else
+    	mkdir $FASTA_DIR
+fi
+
 if [ -d "$FASTQ_DIR" ]; then
 	rm $FASTQ_DIR/*
 else
 	mkdir $FASTQ_DIR
 fi 
 
-## initialize
 if [ -d "$ALIGN_DIR" ]; then
         rm $ALIGN_DIR/*
 else
         mkdir $ALIGN_DIR 
 fi 
 
-# build
+## build
 g++ src/GMA_SE.cpp -o bin/GMA_SE
 
 module load samtools
 module load bwa
 module load bedtools
 module load bedtools
+
+awk -v DIR=$FASTA_DIR '{if(substr($1,1,1)==">") {F=substr($1,2);} print > DIR "/" F ".fasta"}' $REFERENCE
 
 FILES=$FASTA_DIR/*.fa*
 jobs=""
