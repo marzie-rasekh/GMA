@@ -1,3 +1,8 @@
+#!/bin/bash
+#  Author: Marzie E. Rasekh
+#  Laboratory for Biocomputing and Informatics, Boston University
+#  contact me at marzie@bu.edu
+
 cat $ALIGN_DIR/*.extra.bed > $ALIGN_DIR/extra.bed
 cat $ALIGN_DIR/*.missing.bed > $ALIGN_DIR/missing.bed
 

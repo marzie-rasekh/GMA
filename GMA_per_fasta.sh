@@ -1,4 +1,7 @@
 #!/bin/bash
+#  Author: Marzie E. Rasekh
+#  Laboratory for Biocomputing and Informatics, Boston University
+#  contact me at marzie@bu.edu
 
 file="$1"
 sequence=$(basename "$file" | cut -d. -f1)			# the sequence to process, only the name, will find FASTA_DIR/{$sequence}.fa*

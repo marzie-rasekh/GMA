@@ -1,6 +1,9 @@
 #!/bin/bash
-
+#  Author: Marzie E. Rasekh
+#  Laboratory for Biocomputing and Informatics, Boston University
+#  contact me at marzie@bu.edu
 ## param
+
 export PROC=8	                       # not using multi theaded for now
 ## sequencer errors
 export SNP=0.01
