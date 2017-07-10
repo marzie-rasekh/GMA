@@ -64,6 +64,11 @@ The output of the code will the produced in the ALIGN_DIR folder. For each seque
     The result can be used to calculate the final GMA score. (see GMA_TR_analysis.sh)
 
 
+## How to run ##
+
+This code was written for the BU SCC using qsubs. To run on your local cluster remove the qsubs. 
+You can use & to call subprocesses and wait on the child process IDs. 
+
 ## References ##
 
 This work is based on :
